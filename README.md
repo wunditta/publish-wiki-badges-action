@@ -17,7 +17,7 @@ No dependencies: it runs Python 3 and git, both present on every GitHub runner.
 1. **Enable the wiki** of your repository: Settings › General › Features › Wikis. Create any first page on GitHub (the wiki repository does not exist until a page was created once).
 2. **Decide who may edit online.** Under the same setting, "Restrict editing to collaborators only" keeps strangers out; the action's edit guard still protects your own quick online fixes from being overwritten.
 3. **Create the pages folder** in your repository, by default `wiki/`. The page names are the file names (`Home.md` is the start page, `Getting-Started.md` becomes "Getting Started"). Any subfolder is published too, for images for example.
-4. **Add the workflow** file `.github/workflows/wiki.yml`:
+4. **Add the workflow** file `.github/workflows/wiki_badges.yml` (a copy is in this repository under `copy/workflows/`):
 
    ```yaml
    name: Publish wiki
@@ -27,8 +27,8 @@ No dependencies: it runs Python 3 and git, both present on every GitHub runner.
        branches: [main]
        paths:                        # run only when something relevant changed
          - "wiki/**"
-         - ".github/wiki/**"             # badges.json and the icon files
-         - ".github/workflows/wiki.yml"
+         - ".github/wiki_badges/**"             # badges.json and the icon files
+         - ".github/workflows/wiki_badges.yml"
      workflow_dispatch:              # manual start from the Actions tab ("Run workflow")
        inputs:
          force:
@@ -47,12 +47,12 @@ No dependencies: it runs Python 3 and git, both present on every GitHub runner.
      publish:
        runs-on: ubuntu-latest
        steps:
-         - uses: actions/checkout@v4
+         - uses: actions/checkout@v5
 
          - uses: wunditta/publish-wiki-badges-action@v1
            with:
              path: wiki                               # folder with the pages (default)
-             badges: .github/wiki                     # folder with all files for this function, remove this line to disable badges
+             badges: .github/wiki_badges              # folder with all files for this function, remove this line to disable badges
              force: ${{ inputs.force || false }}      # from the manual trigger; false on a push
    ```
 
@@ -68,7 +68,7 @@ No dependencies: it runs Python 3 and git, both present on every GitHub runner.
 | `token` | `${{ github.token }}` | Token that may push to the wiki. The default works when the job has `permissions: contents: write`. A personal access token is needed only to publish into another repository's wiki (`wiki-repository`). |
 | `check-edits` | `true` | Fail when the wiki's last commit was not made by this action. |
 | `force` | `false` | Publish anyway; online edits are overwritten. |
-| `badges` | *(empty)* | Folder holding `badges.json` and the icon files, e.g. `.github/wiki`. Empty: no conversion, the pages are published as they are. |
+| `badges` | *(empty)* | Folder holding `badges.json` and the icon files, e.g. `.github/wiki_badges`. Empty: no conversion, the pages are published as they are. |
 | `commit-message` | `Publish wiki from <sha>` | Commit message in the wiki repository. |
 | `wiki-repository` | the current repository | `owner/repo` whose wiki receives the pages. |
 
@@ -85,7 +85,7 @@ A failed step fails the job, and GitHub mails the person who triggered the run (
       - id: wiki
         uses: wunditta/publish-wiki-badges-action@v1
         with:
-          badges: .github/wiki
+          badges: .github/wiki_badges
 
       - if: failure() && steps.wiki.outputs.result == 'conflict'
         run: echo "::warning::The wiki was edited online - copy the change into wiki/ and push again."
@@ -110,7 +110,7 @@ A table column whose cells hold nothing but badges gets its header widened invis
 
 ### Installation
 
-1. Create a folder, recommended is `.github/wiki/`
+1. Create a folder, recommended is `.github/wiki_badges/`
 2. Copy the template below into it as `badges.json`. See below for how to configure.
 3. If you want to use icons copy them as SVG files into the same folder (an example `module-icon.svg` shaped as a puzzle tileis provided).
 
@@ -134,7 +134,7 @@ Keys starting with `//` are comments; trailing commas are tolerated.
 
 #### Template
 
-Copy this to `.github/wiki/badges.json` and adjust names and colors (the folder holds everything the badges need: the json and the icon files). The same file is in this repository as `badges.template.json`, the icon it names as `module-icon.svg`.
+Copy this to `.github/wiki_badges/badges.json` and adjust names and colors (the folder holds everything the badges need: the json and the icon files). The folder `copy/wiki_badges/` in this repository holds this file and the icon it names (`module-icon.svg`) ready to be copied into your `.github/`.
 
 ```json
 {

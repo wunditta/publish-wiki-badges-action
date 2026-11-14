@@ -112,12 +112,12 @@ class Config:
         if filename not in self.icons:
             p = self.dir / filename
             if not p.is_file():
-                sys.exit("badges: icon file not found: %s" % p)
+                sys.exit("Badges: icon file not found: %s" % p)
             svg = p.read_text(encoding="utf-8")
             m = re.search(r"<svg\b[^>]*>", svg, re.S)
             vb = re.search(r'viewBox="([^"]+)"', m.group(0)) if m else None
             if not m or not vb:
-                sys.exit("badges: icon %s needs an <svg> root with a viewBox" % p)
+                sys.exit("Badges: icon %s needs an <svg> root with a viewBox" % p)
             x, y, w, h = (float(v) for v in vb.group(1).replace(",", " ").split())
             inner = svg[m.end():svg.rfind("</svg>")]
             self.icons[filename] = (x, y, w, h, inner)
@@ -354,7 +354,7 @@ def convert_file(path, pages):
     new = "\n".join(out)
     if new != src:
         path.write_text(new, encoding="utf-8")
-        print(f"badges: converted {path.name}")
+        print(f"Badges: converted {path.name}")
 
 def main():
     global CFG, WIKI

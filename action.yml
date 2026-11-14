@@ -23,7 +23,7 @@ inputs:
     required: false
     default: "false"
   badges:
-    description: "Folder holding badges.json and the icon files (see README), e.g. .github/wiki. Empty: the pages are published as they are, no badge conversion."
+    description: "Folder holding badges.json and the icon files (see README), e.g. .github/wiki_badges. Empty: the pages are published as they are, no badge conversion."
     required: false
     default: ""
   commit-message:

@@ -47,19 +47,19 @@ def git(args, cwd, check=True, capture=False):
     r = subprocess.run(["git"] + args, cwd=cwd, text=True,
                        stdout=subprocess.PIPE if capture else None, stderr=subprocess.STDOUT if capture else None)
     if check and r.returncode != 0:
-        fail("git %s failed%s" % (" ".join(args), (":\n" + r.stdout) if capture and r.stdout else ""))
+        fail("Git %s failed%s" % (" ".join(args), (":\n" + r.stdout) if capture and r.stdout else ""))
     return (r.stdout or "").strip() if capture else r.returncode
 
 
 def main():
     src = pathlib.Path(env("INPUT_PATH", "wiki"))
     if not src.is_dir():
-        fail("the pages folder \"%s\" does not exist" % src)
+        fail("The pages folder \"%s\" does not exist" % src)
     if not any(src.glob("*.md")):
-        fail("the pages folder \"%s\" holds no .md file" % src)
+        fail("The pages folder \"%s\" holds no .md file" % src)
     token = env("INPUT_TOKEN")
     if not token:
-        fail("no token: pass \"token: ${{ github.token }}\" (and give the job \"permissions: contents: write\")")
+        fail("No token: pass \"token: ${{ github.token }}\" (and give the job \"permissions: contents: write\")")
     repo = env("INPUT_WIKI_REPOSITORY") or env("GITHUB_REPOSITORY")
     badges = env("INPUT_BADGES")
     message = env("INPUT_COMMIT_MESSAGE") or ("Publish wiki from " + env("GITHUB_SHA")[:7])
@@ -72,7 +72,7 @@ def main():
     r = subprocess.run(["git", "clone", "--quiet", url, str(clone)], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     if r.returncode != 0:
         out = r.stdout.replace(token, "***")
-        fail("could not clone the wiki of %s.\nThe wiki must exist: enable it under Settings > Features and create any first page on GitHub once.\n%s" % (repo, out))
+        fail("Could not clone the wiki of %s.\nThe wiki must exist: enable it under Settings > Features and create any first page on GitHub once.\n%s" % (repo, out))
 
     # the edit guard: the last wiki commit must be one of ours
     last = git(["log", "-1", "--format=%an <%ae>%n%ad%n%B"], clone, capture=True)
@@ -80,10 +80,9 @@ def main():
     ours = MARKER in last
     if not ours:
         if check and not force:
-            fail("the wiki was changed online since the last publish (last commit by %s on %s).\n"
-                 "Copy the online change into \"%s\" and push again, or run the workflow manually with force=true to overwrite it "
-                 "(also needed for the very first publish, whose wiki only holds the page created on GitHub)." % (author, date, src), "conflict")
-        print("note: last wiki commit by %s on %s is not from this action - overwriting (%s)" % (author, date, "force" if force else "check-edits off"))
+            fail("The wiki was changed online since the last publish (last commit by %s on %s), or it is the first time published.\n"
+                 "Either copy the online changes into your markdown files in \"%s\" and push again, or run the workflow manually from here and tick 'Overwrite the wiki even...' checkbox." % (author, date, src), "conflict")
+        print("Note: the last wiki commit by %s on %s is not from this action - overwriting (%s)" % (author, date, "force" if force else "check-edits off"))
 
     # replace the content
     for item in clone.iterdir():
@@ -97,23 +96,23 @@ def main():
         folder = pathlib.Path(badges)
         cfg = folder / "badges.json"
         if not cfg.is_file():
-            fail("no badges.json in the badges folder \"%s\"" % folder)
+            fail("No badges.json in the badges folder \"%s\"" % folder)
         r = subprocess.run([sys.executable, "-I", str(HERE / "badges.py"), str(clone), str(cfg.resolve())], text=True)
         if r.returncode != 0:
-            fail("badge conversion failed")
+            fail("Badge conversion failed")
 
     git(["config", "user.name", BOT_NAME], clone)
     git(["config", "user.email", BOT_MAIL], clone)
     git(["add", "-A"], clone)
     if git(["diff", "--cached", "--quiet"], clone, check=False) == 0:
-        print("wiki is up to date - nothing to publish")
+        print("Wiki is up to date - nothing to publish")
         output("published", "false")
         output("result", "unchanged")
         return
     git(["commit", "--quiet", "-m", message, "-m", MARKER], clone)
     git(["push", "--quiet"], clone)
     changed = git(["show", "--stat", "--format=", "HEAD"], clone, capture=True)
-    print("published to https://github.com/%s/wiki\n%s" % (repo, changed))
+    print("Published to https://github.com/%s/wiki\n%s" % (repo, changed))
     output("published", "true")
     output("result", "published")
 
