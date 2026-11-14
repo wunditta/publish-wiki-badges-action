@@ -14,7 +14,7 @@ commit and push. Driven by environment variables (set by action.yml):
   GITHUB_REPOSITORY, GITHUB_SHA, GITHUB_OUTPUT  provided by GitHub Actions
 Outputs: published=true|false (successful runs); result=published|unchanged|conflict|error (conflict and error with a failed step).
 """
-import os, sys, shutil, subprocess, tempfile, pathlib
+import os, re, sys, shutil, subprocess, tempfile, pathlib
 
 MARKER = "Published-by: publish-wiki-badges-action"
 BOT_NAME = "github-actions[bot]"
@@ -90,6 +90,19 @@ def main():
             continue
         shutil.rmtree(item) if item.is_dir() else item.unlink()
     shutil.copytree(src, clone, dirs_exist_ok=True, ignore=shutil.ignore_patterns(".git"))
+
+    # README.md is the wiki's Home page (GitHub shows Home.md as the start page)
+    readme, home = clone / "README.md", clone / "Home.md"
+    if readme.is_file() and not home.is_file():
+        readme.rename(home)
+        for page in clone.rglob("*.md"):
+            text = page.read_text(encoding="utf-8")
+            new = re.sub(r"(\]\()(?:\./)?README(?:\.md)?(?=[)#])", r"\1Home", text)
+            if new != text:
+                page.write_text(new, encoding="utf-8")
+        print("README.md published as Home.md")
+    elif readme.is_file():
+        print("Note: both README.md and Home.md exist - README.md stays a page of its own")
 
     # badges
     if badges:

@@ -8,7 +8,7 @@ No dependencies: it runs Python 3 and git, both present on every GitHub runner.
 
 1. Clones the wiki repository (`<owner>/<repo>.wiki.git`).
 2. Checks that the wiki's last commit was made by this action. If someone edited a page online since the last publish, the run fails and tells you who and when, so the edit can be copied into your pages first (`check-edits`, `force`).
-3. Replaces the wiki content with the files of your pages folder (`path`), subfolders included.
+3. Replaces the wiki content with the files of your pages folder (`path`), subfolders included. A `README.md` becomes `Home.md`, the wiki's start page (unless a `Home.md` exists as well); links to it inside the pages are rewritten.
 4. Optionally converts the badge tokens of the pages (`badges`: the folder with `badges.json` and the icons), writing the badge images as SVG files into a folder of the wiki.
 5. Commits and pushes. Nothing is pushed when the wiki is already up to date.
 
@@ -16,7 +16,7 @@ No dependencies: it runs Python 3 and git, both present on every GitHub runner.
 
 1. **Enable the wiki** of your repository: Settings › General › Features › Wikis. Create any first page on GitHub (the wiki repository does not exist until a page was created once).
 2. **Decide who may edit online.** Under the same setting, "Restrict editing to collaborators only" keeps strangers out; the action's edit guard still protects your own quick online fixes from being overwritten.
-3. **Create the pages folder** in your repository, by default `wiki/`. The page names are the file names (`Home.md` is the start page, `Getting-Started.md` becomes "Getting Started"). Any subfolder is published too, for images for example.
+3. **Create the pages folder** in your repository, by default `wiki/`. The page names are the file names (`Home.md` is the start page — a `README.md` is published under that name, so the folder reads well on GitHub too; `Getting-Started.md` becomes "Getting Started"). Any subfolder is published too, for images for example.
 4. **Add the workflow** file `.github/workflows/wiki_badges.yml` (a copy is in this repository under `copy/workflows/`):
 
    ```yaml
