@@ -4,6 +4,8 @@ Format: [Keep a Changelog](https://keepachangelog.com), versions: [Semantic Vers
 
 ## [Unreleased]
 
+## [v1.0.0] - 2026-11-14
+
 ### First release
 
 - Publishes a folder of Markdown pages to the repository wiki: clone, replace, commit as `github-actions[bot]`, push
