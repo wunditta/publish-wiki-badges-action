@@ -1,0 +1,59 @@
+name: "Publish Wiki with Badges"
+description: "Publishes a folder of Markdown pages to the repository wiki, with optional type and module badges and a guard against overwriting pages edited online."
+author: "wunditta"
+branding:
+  icon: "book-open"
+  color: "orange"
+
+inputs:
+  path:
+    description: "Folder in the repository that holds the wiki pages (Home.md and the others)."
+    required: false
+    default: "wiki"
+  token:
+    description: "Token that may push to the wiki repository. The default needs 'permissions: contents: write' on the job."
+    required: false
+    default: ${{ github.token }}
+  check-edits:
+    description: "Fail when the wiki was edited online since the last publish, so the edit is not lost."
+    required: false
+    default: "true"
+  force:
+    description: "Publish even when the wiki was edited online (the online edits are overwritten). Needed once for the very first publish."
+    required: false
+    default: "false"
+  badges:
+    description: "Folder holding badges.json and the icon files (see README), e.g. .github/wiki. Empty: the pages are published as they are, no badge conversion."
+    required: false
+    default: ""
+  commit-message:
+    description: "Commit message in the wiki repository."
+    required: false
+    default: "Publish wiki from ${{ github.sha }}"
+  wiki-repository:
+    description: "owner/repo whose wiki receives the pages. Default: the repository the workflow runs in."
+    required: false
+    default: ${{ github.repository }}
+
+outputs:
+  published:
+    description: "'true' when a new wiki commit was pushed, 'false' when the wiki was already up to date (successful runs only)."
+    value: ${{ steps.publish.outputs.published }}
+  result:
+    description: "'published', 'unchanged', or - with a failed step - 'conflict' (the wiki was edited online) or 'error'."
+    value: ${{ steps.publish.outputs.result }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: publish
+      shell: bash
+      env:
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_TOKEN: ${{ inputs.token }}
+        INPUT_CHECK_EDITS: ${{ inputs.check-edits }}
+        INPUT_FORCE: ${{ inputs.force }}
+        INPUT_BADGES: ${{ inputs.badges }}
+        INPUT_COMMIT_MESSAGE: ${{ inputs.commit-message }}
+        INPUT_WIKI_REPOSITORY: ${{ inputs.wiki-repository }}
+      run: python3 "${{ github.action_path }}/publish_wiki.py"
